@@ -97,6 +97,24 @@ impl MSite {
             self.context[1] == b'p' &&
             self.context[2] == b'G'
     }
+    pub fn is_ccg(&self) -> bool {
+        self.context.len() >= 3 &&
+            self.context[0] == b'C' &&
+            self.context[1] == b'C' &&
+            self.context[2] == b'G'
+    }
+    pub fn is_cxg(&self) -> bool {
+        self.context.len() >= 3 &&
+            self.context[0] == b'C' &&
+            self.context[1] == b'X' &&
+            self.context[2] == b'G'
+    }
+    pub fn is_chh(&self) -> bool {
+        self.context.len() >= 3 &&
+            self.context[0] == b'C' &&
+            self.context[1] == b'H' &&
+            self.context[2] == b'H'
+    }
     pub fn is_mate_of(&self, second : &MSite) -> bool {
         (self.pos + 1 == second.pos) &&
             (self.is_cpg() && second.is_cpg()) &&
@@ -125,8 +143,10 @@ impl MSite {
 
 impl std::fmt::Display for MSite {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        const DIGITER: f64 = 1000000.0;
+        let m = (self.meth*DIGITER).round()/DIGITER;
         write!(f, "{}\t{}\t{}\t{}\t{}\t{}",
                str::from_utf8(&self.chrom).unwrap(), self.pos, self.strand,
-               str::from_utf8(&self.context).unwrap(), self.meth, self.n_reads)
+               str::from_utf8(&self.context).unwrap(), m, self.n_reads)
     }
 }
