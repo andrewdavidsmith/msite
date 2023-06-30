@@ -23,9 +23,30 @@
  * SOFTWARE.
  */
 
+
+//! An abstraction for the methylaton level data associated with an
+//! individual site in a reference genome, where the data comes from
+//! counts of molecules indicating either methylated or unmethylated
+//! observations within sequenced reads.
+//!
+//! Current tasks:
+//!
+//! - [ ] Replace the `chrom` instance variable with an index that
+//!       points to the chrom.
+//! - [ ] Allow for a dictionary to be used when the names of
+//!       chromosomes are needed.
+//! - [ ] Replace the type of `n_reads` with a template so they can be
+//!       smaller if desired.
+//! - [ ] Replace the `context` with an index to contexts.
+//! - [ ] Replace the `meth` variable with an integer value and have
+//!       the fractional value calculated when needed.
+
+
 use std::str;
 use std::cmp::max;
 use std::cmp::Ordering;
+use std::error::Error;
+
 
 #[derive(Debug,PartialEq,PartialOrd)]
 pub struct MSite {
@@ -37,7 +58,9 @@ pub struct MSite {
     pub n_reads: u64,
 }
 
+
 impl Eq for MSite {}
+
 
 impl Ord for MSite {
     fn cmp(&self, other: &MSite) -> Ordering {
@@ -46,7 +69,6 @@ impl Ord for MSite {
 }
 
 
-use std::error::Error;
 impl MSite {
 
     pub fn new() -> MSite {
@@ -141,8 +163,11 @@ impl MSite {
     }
 }
 
+
 impl std::fmt::Display for MSite {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        // this method of rounding is to simulate the C++ default
+        // formatting of floating point numbers as closely as possible
         const DIGITER: f64 = 1000000.0;
         let m = (self.meth*DIGITER).round()/DIGITER;
         write!(f, "{}\t{}\t{}\t{}\t{}\t{}",
