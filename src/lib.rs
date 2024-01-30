@@ -98,6 +98,11 @@ impl MSite {
             Some(part) => part.parse::<f64>().unwrap(),
             None => return Err("failed to extract meth".into()),
         };
+
+        if meth < 0.0 || meth > 1.0 {
+            return Err("methylation level not in range".into());
+        }
+
         let n_reads = match parts.next() {
             Some(part) => part.parse::<u64>().unwrap(),
             None => return Err("failed to extract n_reads".into()),
@@ -184,5 +189,61 @@ impl std::fmt::Display for MSite {
             m,
             self.n_reads
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn build_from_valid_string() {
+        let valid_line1: String = "chr1 0 + CpG 0 0".to_string();
+        let valid_example = MSite{
+            chrom: b"chr1".to_vec(),
+            pos: 0,
+            strand: '+',
+            context: b"CpG".to_vec(),
+            meth: 0.0,
+            n_reads: 0,
+        };
+        let the_site = MSite::build(&valid_line1).unwrap_or_else(|err| {
+            eprintln!("failed parsing site: {err} {valid_line1}");
+            std::process::exit(1);
+        });
+        assert_eq!(valid_example, the_site);
+
+        let valid_line2: String = "chr1\t1000 - CHH 0.8 10".to_string();
+        let valid_example2 = MSite{
+            chrom: b"chr1".to_vec(),
+            pos: 1000,
+            strand: '-',
+            context: b"CHH".to_vec(),
+            meth: 0.8,
+            n_reads: 10,
+        };
+        let the_site = MSite::build(&valid_line2).unwrap_or_else(|err| {
+            eprintln!("failed parsing site: {err} {valid_line2}");
+            std::process::exit(1);
+        });
+        assert_eq!(valid_example2, the_site);
+    }
+
+    #[test]
+    fn build_with_missing_field() {
+        let invalid_line1: String = "chr1 1 + CpG 0".to_string();
+        assert!(MSite::build(&invalid_line1).is_err())
+    }
+
+    #[test]
+    #[should_panic]
+    fn build_with_invalid_position() {
+        let invalid_line1: String = "chr1 -10 + CpG 0 0".to_string();
+        let _  = MSite::build(&invalid_line1);
+    }
+
+    #[test]
+    fn build_with_invalid_methylation_level() {
+        let invalid_line1: String = "chr1 0 + CpG 1.2 10".to_string();
+        assert!(MSite::build(&invalid_line1).is_err())
     }
 }
